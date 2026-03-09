@@ -16,15 +16,14 @@ jobs:
 
       - name: Unzip and build
         run: |
-          ls -la
-          unzip "$(ls *.zip | head -1)"
-          echo "=== After unzip ==="
-          ls -la
-          FOLDER=$(find . -name "gradlew" | head -1 | xargs dirname)
-          echo "Found gradlew in: $FOLDER"
-          cd "$FOLDER"
+          unzip SoneMaKar_with_actions.zip
+          echo "=== SoneMaKar contents ==="
+          ls -la SoneMaKar/
+          echo "=== Nested folder ==="
+          ls -la SoneMaKar/SoneMaKar/ || echo "No nested folder"
+          cd SoneMaKar/SoneMaKar
           chmod +x gradlew
-          ./gradlew assembleDebug --stacktrace
+          ./gradlew assembleDebug
 
       - uses: actions/upload-artifact@v4
         with:
