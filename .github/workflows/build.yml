@@ -14,18 +14,18 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Unzip and build
+      - name: Setup Gradle wrapper
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Unzip project
         run: |
           unzip SoneMaKar_with_actions.zip
-          echo "=== SoneMaKar contents ==="
-          ls -la SoneMaKar/
-          echo "=== Nested folder ==="
-          ls -la SoneMaKar/SoneMaKar/ || echo "No nested folder"
-          cd SoneMaKar/SoneMaKar
+          cd SoneMaKar
+          gradle wrapper --gradle-version 8.2
           chmod +x gradlew
           ./gradlew assembleDebug
 
       - uses: actions/upload-artifact@v4
         with:
           name: APK
-          path: "**/app/build/outputs/apk/debug/app-debug.apk"
+          path: "SoneMaKar/app/build/outputs/apk/debug/app-debug.apk"
