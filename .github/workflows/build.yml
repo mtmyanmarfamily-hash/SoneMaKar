@@ -14,19 +14,19 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Find and unzip
+      - name: Unzip and build
         run: |
           ls -la
           unzip "$(ls *.zip | head -1)"
+          echo "=== After unzip ==="
           ls -la
-
-      - name: Build APK
-        run: |
-          cd SoneMaKar
+          FOLDER=$(find . -name "gradlew" | head -1 | xargs dirname)
+          echo "Found gradlew in: $FOLDER"
+          cd "$FOLDER"
           chmod +x gradlew
           ./gradlew assembleDebug --stacktrace
 
       - uses: actions/upload-artifact@v4
         with:
           name: APK
-          path: SoneMaKar/app/build/outputs/apk/debug/app-debug.apk
+          path: "**/app/build/outputs/apk/debug/app-debug.apk"
