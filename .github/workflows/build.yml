@@ -15,35 +15,35 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
-      - name: Build APK
+      - name: Extract and Prepare Project
         run: |
-          # 1. Debugging: List files to ensure the zip is present
-          ls -F
-          
-          # 2. Extract securely
-          if [ -f "SoneMaKar_final.zip" ]; then
-            unzip -q SoneMaKar_final.zip
-          else
+          # Ensure the file exists
+          if [ ! -f "SoneMaKar_final.zip" ]; then
             echo "Error: SoneMaKar_final.zip not found!"
             exit 1
           fi
           
-          # 3. Locate the correct directory containing gradlew
-          # This finds the directory holding 'gradlew' to ensure we target the right path
+          # Extract the zip
+          unzip -q SoneMaKar_final.zip
+          
+          # Locate the directory where gradlew exists
           GRADLE_DIR=$(find . -maxdepth 3 -name "gradlew" -exec dirname {} \;)
-          echo "Building in: $GRADLE_DIR"
+          echo "Found project in: $GRADLE_DIR"
+          
+          # Change to that directory
           cd "$GRADLE_DIR"
           
-          # 4. Fix permissions explicitly
-          echo "Setting permissions for gradlew..."
-          chmod 755 gradlew
-          ls -l gradlew
+          # CRITICAL: Fix permissions so Linux can run the script
+          chmod +x gradlew
           
-          # 5. Build the project
+      - name: Build APK
+        run: |
+          # Locate directory again to build
+          GRADLE_DIR=$(find . -maxdepth 3 -name "gradlew" -exec dirname {} \;)
+          cd "$GRADLE_DIR"
           ./gradlew assembleDebug
           
       - uses: actions/upload-artifact@v4
         with:
           name: APK
-          # This will find the APK anywhere in the workspace
           path: "**/app-debug.apk"
