@@ -3,6 +3,7 @@ on:
   push:
     branches: [ main ]
   workflow_dispatch:
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -16,7 +17,7 @@ jobs:
 
       - name: Build APK
         run: |
-          # 1. Debugging: See what files are actually there
+          # 1. Debugging: List files to ensure the zip is present
           ls -F
           
           # 2. Extract securely
@@ -27,18 +28,22 @@ jobs:
             exit 1
           fi
           
-          # 3. Find the actual directory that contains build.gradle
-          # This avoids the "cd SoneMaKar" hardcoding if the folder name is slightly different
-          PROJECT_DIR=$(find . -maxdepth 2 -name "build.gradle" -exec dirname {} \;)
-          echo "Building in: $PROJECT_DIR"
-          cd "$PROJECT_DIR"
+          # 3. Locate the correct directory containing gradlew
+          # This finds the directory holding 'gradlew' to ensure we target the right path
+          GRADLE_DIR=$(find . -maxdepth 3 -name "gradlew" -exec dirname {} \;)
+          echo "Building in: $GRADLE_DIR"
+          cd "$GRADLE_DIR"
           
-          # 4. Build
-          chmod +x gradlew
+          # 4. Fix permissions explicitly
+          echo "Setting permissions for gradlew..."
+          chmod 755 gradlew
+          ls -l gradlew
+          
+          # 5. Build the project
           ./gradlew assembleDebug
           
       - uses: actions/upload-artifact@v4
         with:
           name: APK
-          # Use a wildcard to find the APK regardless of folder structure
+          # This will find the APK anywhere in the workspace
           path: "**/app-debug.apk"
