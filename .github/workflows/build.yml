@@ -1,49 +1,30 @@
-name: Build APK
-on:
-  push:
-    branches: [ main ]
-  workflow_dispatch:
-
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'temurin'
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       - name: Extract and Prepare Project
         run: |
-          # Ensure the file exists
-          if [ ! -f "SoneMaKar_final.zip" ]; then
-            echo "Error: SoneMaKar_final.zip not found!"
-            exit 1
-          fi
-          
-          # Extract the zip
-          unzip -q SoneMaKar_final.zip
-          
-          # Locate the directory where gradlew exists
-          GRADLE_DIR=$(find . -maxdepth 3 -name "gradlew" -exec dirname {} \;)
-          echo "Found project in: $GRADLE_DIR"
-          
-          # Change to that directory
-          cd "$GRADLE_DIR"
-          
-          # CRITICAL: Fix permissions so Linux can run the script
-          chmod +x gradlew
-          
+          # Replace 'SoneMakar_final.zip' with your actual zip filename
+          unzip -q SoneMakar_final.zip -d .
+          # Ensure the directory exists
+          ls -R SoneMakar
+
       - name: Build APK
         run: |
-          # Locate directory again to build
-          GRADLE_DIR=$(find . -maxdepth 3 -name "gradlew" -exec dirname {} \;)
-          cd "$GRADLE_DIR"
-          ./gradlew assembleDebug
+          # Navigate into the project directory
+          cd SoneMakar
           
-      - uses: actions/upload-artifact@v4
+          # Force the gradlew script to be executable
+          chmod +x gradlew
+          
+          # Run the build with debug flags for better visibility
+          ./gradlew assembleDebug --stacktrace --info
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
         with:
-          name: APK
-          path: "**/app-debug.apk"
+          name: app-debug
+          path: SoneMakar/app/build/outputs/apk/debug/app-debug.apk
