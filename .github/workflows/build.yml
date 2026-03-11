@@ -8,18 +8,37 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      
       - uses: actions/setup-java@v4
         with:
           java-version: '17'
           distribution: 'temurin'
+
       - name: Build APK
         run: |
-          unzip SoneMaKar_final.zip
-          cd SoneMaKar
-          gradle wrapper --gradle-version 8.2
+          # 1. Debugging: See what files are actually there
+          ls -F
+          
+          # 2. Extract securely
+          if [ -f "SoneMaKar_final.zip" ]; then
+            unzip -q SoneMaKar_final.zip
+          else
+            echo "Error: SoneMaKar_final.zip not found!"
+            exit 1
+          fi
+          
+          # 3. Find the actual directory that contains build.gradle
+          # This avoids the "cd SoneMaKar" hardcoding if the folder name is slightly different
+          PROJECT_DIR=$(find . -maxdepth 2 -name "build.gradle" -exec dirname {} \;)
+          echo "Building in: $PROJECT_DIR"
+          cd "$PROJECT_DIR"
+          
+          # 4. Build
           chmod +x gradlew
           ./gradlew assembleDebug
+          
       - uses: actions/upload-artifact@v4
         with:
           name: APK
-          path: "SoneMaKar/app/build/outputs/apk/debug/app-debug.apk"
+          # Use a wildcard to find the APK regardless of folder structure
+          path: "**/app-debug.apk"
